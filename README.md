@@ -73,4 +73,4 @@ Before you begin, make sure you have the following software installed:
    Open a terminal and clone the repository to your local machine:
 
    ```bash
-   git clone https://github.com/your-username/tea-leaves-disease-detector.git
+   https://github.com/lasitha-theWolf/Intelligent-Diagnosis-and-Treatment-Recommendation-System-for-Tea-Leaf-Diseases.git

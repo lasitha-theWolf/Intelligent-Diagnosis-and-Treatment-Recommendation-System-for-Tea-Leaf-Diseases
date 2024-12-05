@@ -3,7 +3,7 @@ import React from "react";
 const Hero = ({ title, imageUrl }) => {
   return (
     <>
-      <div className="hero container">
+      <div className="hero container" style={{ marginTop: '24px' }}>
         <div className="banner">
           <h1>{title}</h1>
           <p>

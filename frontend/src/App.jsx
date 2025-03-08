@@ -8,6 +8,7 @@ import Register from "./Pages/Register";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import LeafRecognition from "./Pages/LeafRecognition";
+import CnnDetection from "./Pages/CnnDetection";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
@@ -45,11 +46,12 @@ const App = () => {
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/appointment" element={<Appointment />} />
+          <Route path="/cnn-detection/ai" element={<CnnDetection/>} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/leaf-recognition/ai" element={<LeafRecognition />} />
+
         </Routes>
         <Footer />
         <ToastContainer position="top-center" />

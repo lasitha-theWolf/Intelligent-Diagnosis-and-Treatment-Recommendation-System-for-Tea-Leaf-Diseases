@@ -387,17 +387,6 @@ html, body {
     flex-direction: column;
   }
 }
-/* For Chrome, Safari, and Opera */
-body::-webkit-scrollbar {
-  display: none;
-}
-
-/* For IE, Edge, and Firefox */
-body {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
-}
-
 
 .departments {
   padding-top: 30px;

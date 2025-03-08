@@ -12,6 +12,9 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { Context } from "./main";
 import Login from "./Pages/Login";
+import "react-toastify/dist/ReactToastify.css";
+import "tailwindcss/tailwind.css";
+
 const App = () => {
   const { isAuthenticated, setIsAuthenticated, setUser } =
     useContext(Context);

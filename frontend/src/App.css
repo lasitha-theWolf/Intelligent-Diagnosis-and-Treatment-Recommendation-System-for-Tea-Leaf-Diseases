@@ -66,6 +66,8 @@ h6 {
 }
 .container {
   padding: 0 100px;
+  max-width: 100%;
+  overflow-x: hidden; /* Add this */
 }
 @media (max-width: 700px) {
   .container {
@@ -97,7 +99,7 @@ h6 {
 }
 .hero .banner span {
   position: absolute;
-  right: -300px;
+  right: clamp(-100px, -20vw, -300px); /* More responsive */
   top: -200px;
   z-index: -1;
 }
@@ -205,9 +207,7 @@ h6 {
   flex: 1;
 }
 .form-component .wrapper .banner:last-child {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  overflow: hidden;
 }
 .form-component .wrapper .banner:last-child img {
   max-width: 450px;
@@ -367,6 +367,11 @@ footer .content div:last-child div svg {
     margin-bottom: 30px;
   }
 }
+html, body {
+  width: 100%;
+  overflow-x: hidden; /* Already present in * but reinforcing here */
+}
+
 @media (max-width: 900px) {
   footer {
     padding-bottom: 0 !important;
@@ -382,6 +387,17 @@ footer .content div:last-child div svg {
     flex-direction: column;
   }
 }
+/* For Chrome, Safari, and Opera */
+body::-webkit-scrollbar {
+  display: none;
+}
+
+/* For IE, Edge, and Firefox */
+body {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
 
 .departments {
   padding-top: 30px;

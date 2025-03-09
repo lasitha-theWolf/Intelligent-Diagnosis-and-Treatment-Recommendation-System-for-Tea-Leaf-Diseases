@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import fileUpload from "express-fileupload";
 import { errorMiddleware } from "./middlewares/error.js";
-import messageRouter from "./router/messageRouter.js";
+import segmentationRouter from "./router/segmentationRouter.js";
 import userRouter from "./router/userRouter.js";
 import appointmentRouter from "./router/appointmentRouter.js";
 import staffRouter from "./router/staffRouter.js"; 
@@ -15,8 +15,8 @@ config({ path: "./config.env" });
 
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URI],
-    method: ["GET", "POST", "DELETE", "PUT"],
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "DELETE", "PUT"],
     credentials: true,
   })
 );
@@ -24,20 +24,45 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(fileUpload({
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
+  abortOnLimit: true,
+  debug: true,
+}));
 
-app.use(
-  fileUpload({
-    useTempFiles: true,
-    tempFileDir: "/tmp/",
-  })
-);
-app.use("/api/v1/message", messageRouter);
-app.use("/api/v1/user", userRouter);
-app.use("/api/v1/appointment", appointmentRouter);
-app.use("/api/v1/staff", staffRouter); 
+app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.path}`);
+  next();
+});
 
+app.use("/segmentation", segmentationRouter);
+app.use("/users", userRouter);
+app.use("/appointments", appointmentRouter);
+app.use("/staff", staffRouter);
 
 dbConnection();
 
 app.use(errorMiddleware);
+
+const PORT = process.env.PORT || 5000;
+
+const server = app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Free it with 'taskkill /PID <PID> /F' or change PORT in config.env`);
+    process.exit(1);
+  } else {
+    console.error(`Server error: ${err.message}`);
+    process.exit(1);
+  }
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err.message, err.stack);
+  process.exit(1);
+});
+
 export default app;

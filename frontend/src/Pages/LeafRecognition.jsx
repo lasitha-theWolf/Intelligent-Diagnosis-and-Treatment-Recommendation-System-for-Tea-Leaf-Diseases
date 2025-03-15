@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { FaLeaf, FaUpload, FaRobot, FaSpinner } from "react-icons/fa";
-import { motion } from "framer-motion"; // For animations
+import { motion } from "framer-motion";
 import {
   FaBolt,
   FaCheck,
@@ -12,8 +13,8 @@ import {
 const LeafRecognition = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState(null);
 
-  // Scroll to the top when the component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -21,43 +22,91 @@ const LeafRecognition = () => {
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      setSelectedImage(URL.createObjectURL(file));
+      setSelectedImage(file);
+      setResult(null);
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selectedImage) {
       setIsLoading(true);
-      // Simulate AI processing
-      setTimeout(() => {
+      try {
+        const formData = new FormData();
+        formData.append("image", selectedImage);
+
+        const response = await axios.post(
+          "http://localhost:5001/segmentation/leaf-recognition",
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+
+        setResult({ type: "success", leafType: response.data.leafType });
+      } catch (error) {
+        console.error("Error analyzing image:", error);
+        setResult({
+          type: "error",
+          message: error.response?.data?.details
+            ? error.response.data.details
+            : error.response?.data?.error || "Could not analyze the image"
+        });
+      } finally {
         setIsLoading(false);
-        // Here you would typically handle the AI processing result
-        alert("Leaf analysis complete! (This is a demo)");
-      }, 2000);
+      }
     }
+  };
+
+  // Helper function to render leaf analysis result
+  const renderLeafAnalysis = (leafType) => {
+    // Parse the leafType string: "Tea leaf (not healthy)" or similar
+    const match = leafType.match(/^(.*?)\s*\((.*?)\)$/);
+    let type = leafType;
+    let condition = null;
+
+    if (match) {
+      type = match[1].trim(); // "Tea leaf"
+      condition = match[2].trim(); // "not healthy" or "healthy"
+    }
+
+    const isTeaLeaf = type.toLowerCase().includes("tea");
+    const isHealthy = condition && condition.toLowerCase().includes("healthy");
+
+    return (
+      <div>
+        <p className="text-lg text-green-700 font-medium">
+          Leaf Type: {type}
+        </p>
+        {isTeaLeaf && condition && (
+          <p className="text-sm text-gray-600 mt-1">
+            Condition: {isHealthy ? "Healthy" : "Unhealthy"}
+          </p>
+        )}
+        <p className="text-sm text-gray-600 mt-1">
+          Accuracy: ≥90%
+        </p>
+      </div>
+    );
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 pt-40 pb-12 px-4">
       <div className="container mx-auto max-w-5xl">
-        {/* Title with Animation */}
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center mb-12"
         >
-          <h1 className="text-4xl font-bold text-green-800 flex items-center justify-center gap-3 ">
+          <h1 className="text-4xl font-bold text-green-800 flex items-center justify-center gap-3">
             <FaLeaf className="text-green-600" /> LeafSense AI
           </h1>
           <p className="text-xl text-gray-600 mt-4 max-w-2xl mx-auto">
-            Harness the power of artificial intelligence to analyze tea leaves
-            with 98% accuracy. Upload an image and let LeafSense AI detect
-            potential diseases in real-time.
+            Advanced technology to identify tea, mango, or coconut leaves
+            and assess tea leaf health with over 90% accuracy.
           </p>
         </motion.div>
 
-        {/* Image Upload Area */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -65,7 +114,6 @@ const LeafRecognition = () => {
           className="bg-white rounded-3xl shadow-2xl p-8"
         >
           <div className="flex flex-col items-center">
-            {/* Upload Area */}
             <label
               htmlFor="image-upload"
               className={`w-full h-[400px] border-4 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${
@@ -76,7 +124,7 @@ const LeafRecognition = () => {
             >
               {selectedImage ? (
                 <img
-                  src={selectedImage}
+                  src={URL.createObjectURL(selectedImage)}
                   alt="Uploaded leaf"
                   className="w-full h-full object-contain rounded-xl"
                 />
@@ -104,7 +152,6 @@ const LeafRecognition = () => {
               />
             </label>
 
-            {/* Submit Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -120,10 +167,53 @@ const LeafRecognition = () => {
               ) : (
                 <>
                   <FaRobot className="text-xl" />
-                  Analyze with LeafSense AI
+                  Analyze Leaf
                 </>
               )}
             </motion.button>
+
+            {/* Result Display */}
+            {result && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className={`mt-8 w-full p-6 rounded-xl shadow-md ${
+                  result.type === "success"
+                    ? "bg-green-100 border-2 border-green-500"
+                    : "bg-red-100 border-2 border-red-500"
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className={`text-xl font-semibold mb-3 ${
+                      result.type === "success" ? "text-green-800" : "text-red-800"
+                    }`}>
+                      {result.type === "success" ? "Leaf Analysis Result" : "Analysis Error"}
+                    </h3>
+                    {result.type === "success" ? (
+                      renderLeafAnalysis(result.leafType)
+                    ) : (
+                      <p className="text-lg text-red-700">{result.message}</p>
+                    )}
+                  </div>
+                  <div className={`p-3 rounded-full ${
+                    result.type === "success" ? "bg-green-200" : "bg-red-200"
+                  }`}>
+                    {result.type === "success" ? (
+                      <FaCheck className="text-2xl text-green-600" />
+                    ) : (
+                      <FaLeaf className="text-2xl text-red-600" />
+                    )}
+                  </div>
+                </div>
+                {result.type === "success" && (
+                  <p className="mt-4 text-sm text-gray-600">
+                    Analysis completed using LeafSense AI technology
+                  </p>
+                )}
+              </motion.div>
+            )}
           </div>
         </motion.div>
 
@@ -134,7 +224,6 @@ const LeafRecognition = () => {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6"
         >
-          {/* Fast Analysis */}
           <motion.div
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
@@ -147,12 +236,10 @@ const LeafRecognition = () => {
               </h3>
             </div>
             <p className="text-gray-600">
-              Rapid detection powered by an optimized CNN pipeline, delivering
-              results in seconds for tea leaf analysis.
+              Get quick results using our advanced technology.
             </p>
           </motion.div>
 
-          {/* High Accuracy */}
           <motion.div
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
@@ -165,30 +252,10 @@ const LeafRecognition = () => {
               </h3>
             </div>
             <p className="text-gray-600">
-              Leveraging advanced convolutional neural networks, our model
-              achieves over 98% accuracy in identifying tea leaf diseases.
+              Over 90% accuracy in leaf identification and health assessment.
             </p>
           </motion.div>
 
-          {/* Real-Time Feedback */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition transform"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <FaClock className="text-green-700 text-2xl" />
-              <h3 className="text-lg font-semibold text-green-700">
-                Real-Time Feedback
-              </h3>
-            </div>
-            <p className="text-gray-600">
-              Get instant processing and live feedback on tea leaf conditions,
-              ensuring timely detection and monitoring.
-            </p>
-          </motion.div>
-
-          {/* Advanced CNN Technology */}
           <motion.div
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
@@ -197,30 +264,11 @@ const LeafRecognition = () => {
             <div className="flex items-center gap-3 mb-4">
               <FaBrain className="text-green-700 text-2xl" />
               <h3 className="text-lg font-semibold text-green-700">
-                Advanced CNN Technology
+                Smart Technology
               </h3>
             </div>
             <p className="text-gray-600">
-              Our system utilizes state-of-the-art CNN architecture to extract
-              intricate features from tea leaves for precise identification.
-            </p>
-          </motion.div>
-
-          {/* Comprehensive Diagnosis */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition transform"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <FaStethoscope className="text-green-700 text-2xl" />
-              <h3 className="text-lg font-semibold text-green-700">
-                Comprehensive Diagnosis
-              </h3>
-            </div>
-            <p className="text-gray-600">
-              Beyond simple detection, receive detailed insights into various
-              tea leaf conditions to empower proactive care and maintenance.
+              Utilizes cutting-edge analysis for precise results.
             </p>
           </motion.div>
         </motion.div>

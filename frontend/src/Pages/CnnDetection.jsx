@@ -1,28 +1,76 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { FaSearch, FaUpload, FaBrain, FaSpinner } from "react-icons/fa";
-import { FaCheck, FaClock, FaDatabase, FaLeaf } from "react-icons/fa";
+import { FaCheck, FaClock, FaDatabase } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-const CnnDetection = () => {
+const LeafSenseAnalysis = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      setSelectedImage(URL.createObjectURL(file));
+      setSelectedImage(file);
+      setResult(null);
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selectedImage) {
       setIsLoading(true);
-      // Simulate CNN processing
-      setTimeout(() => {
+      try {
+        const formData = new FormData();
+        formData.append("image", selectedImage);
+
+        const response = await axios.post(
+          "http://localhost:5001/segmentation/cnn-detection",
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+
+        console.log("Leaf analysis response:", response.data);
+
+        setResult({ 
+          type: "success", 
+          disease: response.data.disease || "Unknown disease" 
+        });
+      } catch (error) {
+        console.error("Error analyzing image:", error);
+        setResult({
+          type: "error",
+          message: error.response?.data?.details
+            ? error.response.data.details
+            : error.response?.data?.error || error.message || "Could not analyze the image",
+        });
+      } finally {
         setIsLoading(false);
-        alert("CNN Disease Detection Complete! (Demo)");
-      }, 2500);
+      }
     }
+  };
+
+  const renderLeafAnalysis = (disease) => {
+    if (!disease || typeof disease !== "string") {
+      return (
+        <div className="text-red-400">
+          <p>Unable to identify disease. Invalid data received.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="text-teal-100">
+        <p className="text-lg font-medium">Detected Disease: {disease}</p>
+        <p className="text-sm mt-1">Accuracy: ≥90%</p>
+      </div>
+    );
   };
 
   return (
@@ -36,11 +84,10 @@ const CnnDetection = () => {
           className="mb-20"
         >
           <h1 className="text-3xl font-bold text-center text-green-600 flex items-center gap-4 justify-center">
-            <FaBrain className="text-teal-300" /> NeuralVision CNN
+            <FaBrain className="text-teal-300" /> LeafSense Analysis
           </h1>
-          <p className="text-lg text-teal-100  max-w-xl text-center mx-auto mt-4">
-            Advanced Convolutional Neural Network technology scans leaf images
-            to detect disease patterns with precision and speed.
+          <p className="text-lg text-teal-100 max-w-xl text-center mx-auto mt-4">
+            Advanced technology scans leaf images to identify diseases with precision and speed.
           </p>
         </motion.div>
 
@@ -55,7 +102,7 @@ const CnnDetection = () => {
             {/* Upload Section */}
             <div className="relative">
               <label
-                htmlFor="cnn-upload"
+                htmlFor="leaf-upload"
                 className={`w-full h-[350px] rounded-xl overflow-hidden border-2 border-teal-400 flex items-center justify-center cursor-pointer transition-all duration-500 ${
                   selectedImage
                     ? "border-opacity-100"
@@ -64,9 +111,9 @@ const CnnDetection = () => {
               >
                 {selectedImage ? (
                   <img
-                    src={selectedImage}
+                    src={URL.createObjectURL(selectedImage)}
                     alt="Uploaded leaf"
-                    className="w-full h-full object-cover"
+                    className="max-w-full max-h-full object-contain"
                   />
                 ) : (
                   <motion.div className="text-center text-teal-200">
@@ -76,7 +123,7 @@ const CnnDetection = () => {
                   </motion.div>
                 )}
                 <input
-                  id="cnn-upload"
+                  id="leaf-upload"
                   type="file"
                   accept="image/*"
                   className="hidden"
@@ -89,18 +136,25 @@ const CnnDetection = () => {
             <div className="flex flex-col justify-between">
               <div>
                 <h3 className="text-2xl font-semibold text-white mb-4">
-                  CNN Analysis
+                  Leaf Analysis
                 </h3>
-                <p className="text-teal-100 mb-6">
-                  Our deep learning model processes leaf images through multiple
-                  convolutional layers to identify disease signatures.
-                </p>
+                {result ? (
+                  result.type === "success" ? (
+                    renderLeafAnalysis(result.disease)
+                  ) : (
+                    <p className="text-red-400 mb-6">{result.message}</p>
+                  )
+                ) : (
+                  <p className="text-teal-100 mb-6">
+                    Our advanced system processes leaf images to identify diseases accurately.
+                  </p>
+                )}
               </div>
 
               <button
                 disabled={!selectedImage || isLoading}
                 onClick={handleSubmit}
-                className="w-full bg-green-600 py-4 rounded-lg font-bold flex items-center justify-center gap-3 shadow-lg hover:bg-gradient-to-r hover:from-teal-500 hover:to-teal-700 hover:text-white transition-all duration-300 hover:cursor-pointer"
+                className="w-full bg-green-600 py-4 rounded-lg font-bold flex items-center justify-center gap-3 shadow-lg hover:bg-gradient-to-r hover:from-teal-500 hover:to-teal-700 hover:text-white transition-all duration-300 hover:cursor-pointer disabled:bg-gray-500 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
@@ -110,7 +164,7 @@ const CnnDetection = () => {
                 ) : (
                   <>
                     <FaSearch className="text-xl" />
-                    Scan with NeuralVision
+                    Scan with LeafSense
                   </>
                 )}
               </button>
@@ -123,41 +177,37 @@ const CnnDetection = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-10 mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5"
+          className="mt-10 mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
         >
           {/* Card 1: Detection Accuracy */}
           <div className="bg-teal-800 bg-opacity-60 p-6 rounded-lg text-center flex flex-col items-center shadow-lg">
             <FaCheck className="text-4xl text-teal-200 mb-2" />
-            <p className="text-3xl font-bold text-teal-200">95%</p>
+            <p className="text-3xl font-bold text-teal-200">90%+</p>
             <p className="text-sm text-teal-100 mt-1">Detection Accuracy</p>
           </div>
 
-          {/* Card 3: Parameters */}
+          {/* Card 2: Processing Speed */}
           <div className="bg-teal-800 bg-opacity-60 p-6 rounded-lg text-center flex flex-col items-center shadow-lg">
-            <FaDatabase className="text-4xl text-teal-200 mb-2" />
-            <p className="text-3xl font-bold text-teal-200">100M+</p>
-            <p className="text-sm text-teal-100 mt-1">Parameters</p>
+            <FaClock className="text-4xl text-teal-200 mb-2" />
+            <p className="text-3xl font-bold text-teal-200">Fast</p>
+            <p className="text-sm text-teal-100 mt-1">Processing Speed</p>
           </div>
 
-          {/* Card 4: About Tea Leaf Disease */}
+          {/* Card 3: CNN Technology */}
           <div className="bg-green-800 bg-opacity-60 p-6 rounded-lg text-center flex flex-col items-center shadow-lg">
-            <FaLeaf className="text-4xl text-green-200 mb-2" />
-            <p className="text-xl font-bold text-green-200">Tea Leaf Disease</p>
+            <FaBrain className="text-4xl text-green-200 mb-2" />
+            <p className="text-xl font-bold text-green-200">CNN Powered</p>
             <p className="text-sm text-green-100 mt-1">
-              Detect early signs of tea leaf disease to protect crop health and
-              maximize yield.
+              Uses Convolutional Neural Networks
             </p>
           </div>
 
-          {/* Card 5: About NeuralVision CNN */}
+          {/* Card 4: About LeafSense */}
           <div className="bg-purple-800 bg-opacity-60 p-6 rounded-lg text-center flex flex-col items-center shadow-lg">
             <FaBrain className="text-4xl text-purple-200 mb-2" />
-            <p className="text-xl font-bold text-purple-200">
-              NeuralVision CNN
-            </p>
+            <p className="text-xl font-bold text-purple-200">LeafSense</p>
             <p className="text-sm text-purple-100 mt-1">
-              Powered by a state‑of‑the‑art CNN model for accurate and fast
-              disease detection.
+              Cutting-edge technology for precise leaf analysis
             </p>
           </div>
         </motion.div>
@@ -166,4 +216,4 @@ const CnnDetection = () => {
   );
 };
 
-export default CnnDetection;
+export default LeafSenseAnalysis;

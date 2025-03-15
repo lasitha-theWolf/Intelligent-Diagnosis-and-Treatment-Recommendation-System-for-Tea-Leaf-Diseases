@@ -62,7 +62,7 @@ const MainPipelineCard = () => {
       </div>
 
       <div className="relative z-10">
-        <Link to="/pipeline" className="block">
+        <Link to="/ai-pipeline" className="block">
           <div className="flex items-center gap-4 flex-wrap justify-center">
             <FaNetworkWired className="text-5xl animate-pulse" />
             <h2 className="text-3xl text-center font-bold break-words">TeaGuardian AI Pipeline</h2>
@@ -94,7 +94,7 @@ const MainPipelineCard = () => {
           </Link>
         </div>
 
-        <Link to="/pipeline/explore" className="mt-8 mx-auto bg-white text-green-600 px-8 py-4 rounded-lg font-semibold flex items-center gap-2 hover:bg-green-50 hover:text-green-700 transition-all duration-300 shadow-lg hover:shadow-xl w-fit">
+        <Link to="/ai-pipeline" className="mt-8 mx-auto bg-white text-green-600 px-8 py-4 rounded-lg font-semibold flex items-center gap-2 hover:bg-green-50 hover:text-green-700 transition-all duration-300 shadow-lg hover:shadow-xl w-fit">
           <FaRobot className="text-xl" /> Explore the Pipeline
         </Link>
       </div>

@@ -1,7 +1,13 @@
+// routes/segmentationRouter.js
 import express from "express";
 import { analyzeLeafImage, analyzeTeaLeafImage, analyzeCNNLeafImage } from "../controller/segmentationController.js";
+import { analyzeAiPipeline } from "../controller/pipeline.js";
 
 const router = express.Router();
+
+router.post("/ai-pipeline", (req, res, next) => {
+  next();
+}, analyzeAiPipeline);
 
 router.post("/", (req, res, next) => {
   console.log("Segmentation route handler called");

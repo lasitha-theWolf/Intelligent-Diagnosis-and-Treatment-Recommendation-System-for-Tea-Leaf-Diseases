@@ -10,6 +10,7 @@ import Navbar from "./components/Navbar";
 import LeafRecognition from "./Pages/LeafRecognition";
 import Segmentation from "./Pages/Segmentation";
 import CnnDetection from "./Pages/CnnDetection";
+import AIPipeline from "./Pages/AIPipeline";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
@@ -32,6 +33,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/leaf-recognition/ai" element={<LeafRecognition />} />
           <Route path="/segmentation/ai" element={<Segmentation />} />
+          <Route path="/ai-pipeline" element={<AIPipeline />} />
 
         </Routes>
         <Footer />

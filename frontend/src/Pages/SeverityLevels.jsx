@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getTreatment } from "../api/openai";
+import { Link } from 'react-router-dom';
 import { CheckCircle } from "lucide-react";
 
 const SeverityLevels = () => {
@@ -379,13 +380,12 @@ const SeverityLevels = () => {
         </div>
       )}
       <div className="flex flex-col md:flex-row justify-center items-center w-full md:w-1/2 mx-auto">
-        <button
-          type="button"
+        <Link
+          to="/"
           className="w-full md:w-auto text-white bg-red-700 hover:bg-red-800 font-medium rounded-lg text-xl px-10 py-2.5 mb-2 focus:outline-none transition duration-200 shadow-lg flex items-center justify-center"
-          //onClick={handleGenerateMedication}
         >
           Cancel
-        </button>
+        </Link>
       </div>
     </div>
   );

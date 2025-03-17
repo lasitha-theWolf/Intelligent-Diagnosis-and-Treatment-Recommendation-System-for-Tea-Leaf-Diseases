@@ -15,12 +15,11 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { Context } from "./main";
-import DualClassifierPage from "./Pages/DualClassifierPage";
-import LeafDifferentiationPage from "./Pages/LeafDifferentiationPage";
-import TeaLeafSegmentationPage from "./Pages/TeaLeafSegmentationPage";
 import Login from "./Pages/Login";
 import "react-toastify/dist/ReactToastify.css";
 import "tailwindcss/tailwind.css";
+import Treatment from "./Pages/Treatment";
+import SeverityLevels from "./Pages/SeverityLevels";
 
 const App = () => {
 
@@ -37,9 +36,9 @@ const App = () => {
           <Route path="/leaf-recognition/ai" element={<LeafRecognition />} />
           <Route path="/segmentation/ai" element={<Segmentation />} />
           <Route path="/ai-pipeline" element={<AIPipeline />} />
-          <Route path="/cnn-detection/learn-more" element={<DualClassifierPage />} />
-          <Route path="/leaf-recognition/learn-more" element={<LeafDifferentiationPage />} />
-          <Route path="/segmentation/learn-more" element={<TeaLeafSegmentationPage />} />
+
+          <Route path="/treatments/ai" element={<Treatment />} />
+          <Route path="/output" element={<SeverityLevels />} />
 
         </Routes>
         <Footer />

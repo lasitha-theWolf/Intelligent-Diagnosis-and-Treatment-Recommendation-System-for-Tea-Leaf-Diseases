@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_KEY = process.env.API_KEY_SEQ;
+const API_KEY = process.env.API_KEY;
 
 export const getTreatment = async (disease, severity, percentage) => {
   const prompt = `

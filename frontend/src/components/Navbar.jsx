@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { GiHamburgerMenu } from "react-icons/gi";
+import { GiMedicines } from "react-icons/gi";
 import { FaHome, FaBrain, FaLeaf, FaImage, FaInfoCircle } from "react-icons/fa";
 
 const Navbar = () => {
@@ -47,6 +48,12 @@ const Navbar = () => {
               to="/segmentation/ai"
               icon={<FaImage className="h-5 w-5 text-emerald-500" />}
               text="Segmentation"
+              onClick={() => setShow(false)}
+            />
+            <NavLink
+              to="/treatments/ai"
+              icon={<GiMedicines className="h-5 w-5 text-emerald-500" />}
+              text="Treatment"
               onClick={() => setShow(false)}
             />
             <NavLink

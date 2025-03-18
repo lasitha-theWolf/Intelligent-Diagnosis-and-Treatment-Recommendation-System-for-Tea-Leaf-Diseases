@@ -21,6 +21,8 @@ import TeaLeafSegmentationPage from "./Pages/TeaLeafSegmentationPage";
 import Login from "./Pages/Login";
 import "react-toastify/dist/ReactToastify.css";
 import "tailwindcss/tailwind.css";
+import Treatment from "./Pages/Treatment";
+import SeverityLevels from "./Pages/SeverityLevels";
 
 const App = () => {
 
@@ -29,7 +31,7 @@ const App = () => {
       <Router>
         <Navbar />
         <Routes>
-          <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home />} />
           <Route path="/cnn-detection/ai" element={<CnnDetection/>} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/register" element={<Register />} />
@@ -40,6 +42,9 @@ const App = () => {
           <Route path="/cnn-detection/learn-more" element={<DualClassifierPage />} />
           <Route path="/leaf-recognition/learn-more" element={<LeafDifferentiationPage />} />
           <Route path="/segmentation/learn-more" element={<TeaLeafSegmentationPage />} />
+
+          <Route path="/treatments/ai" element={<Treatment />} />
+          <Route path="/output" element={<SeverityLevels />} />
 
         </Routes>
         <Footer />

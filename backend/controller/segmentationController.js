@@ -50,7 +50,7 @@ export const analyzeLeafImage = async (req, res, next) => {
           content: [
             {
               type: "text",
-              text: "Identify the tea leaf disease from this image. Consider only these options: Algal Leaf Spot, Grey Blight Disease, Brown Blight, Red Leaf Spot, White Spot. Return only the disease name.",
+              text: "Identify the tea leaf disease from this image. Consider only these options: Algal Leaf Spot, Grey Blight Disease, Brown Blight, Red Leaf Spot, White Spot. Return only the disease name.if image not leaf return not a leaf.",
             },
             {
               type: "image_url",
@@ -123,7 +123,7 @@ export const analyzeTeaLeafImage = async (req, res, next) => {
           content: [
             {
               type: "text",
-              text: "Identify if this image shows a tea leaf, mango leaf, or coconut leaf. if its a tea leaf identify the tea leaf healthy or not Return only the identification result as a single line. with accuray of 90% or more.",
+              text: "Identify if this image shows a tea leaf, mango leaf, or coconut leaf. if its a tea leaf identify the tea leaf healthy or not Return only the identification result as a single line. with accuray of 90% or more.if image not leaf return not a leaf.",
             },
             {
               type: "image_url",
@@ -209,7 +209,7 @@ export const analyzeCNNLeafImage = async (req, res, next) => {
           content: [
             {
               type: "text",
-              text: "Identify the tea leaf disease from this image. Consider only these options: Algal Leaf Spot, Grey Blight Disease, Brown Blight, Red Leaf Spot, White Spot. Return only the disease name.",
+              text: "Identify the tea leaf disease from this image. Consider only these options: Algal Leaf Spot, Grey Blight Disease, Brown Blight, Red Leaf Spot, White Spot. Return only the disease name.if image not leaf return not a leaf.",
             },
             {
               type: "image_url",

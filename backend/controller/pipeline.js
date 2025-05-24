@@ -10,55 +10,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Expanded disease database with multiple treatment options
-const diseaseDatabase = {
-  "Algal Leaf Spot": {
-    severity: "Moderate",
-    treatments: [
-      "Prune affected leaves and improve air circulation. Apply a copper-based fungicide if necessary.",
-      "Use neem oil spray weekly to control algae growth.",
-      "Avoid overhead watering and ensure proper drainage to reduce moisture.",
-    ],
-    accuracy: 75,
-  },
-  "Grey Blight Disease": {
-    severity: "Mild",
-    treatments: [
-      "Remove and destroy affected leaves, then apply a fungicide like mancozeb.",
-      "Spray with a mixture of baking soda and water (1 tsp per liter) as a natural remedy.",
-      "Increase plant spacing to enhance airflow and reduce humidity.",
-    ],
-    accuracy: 80,
-  },
-  "Brown Blight": {
-    severity: "Severe",
-    treatments: [
-      "Cut back affected areas and apply a systemic fungicide like thiophanate-methyl.",
-      "Burn or bury pruned debris to prevent spore spread.",
-      "Apply a compost tea spray to boost plant immunity.",
-    ],
-    accuracy: 65,
-  },
-  "Red Leaf Spot": {
-    severity: "Moderate",
-    treatments: [
-      "Improve soil drainage and apply a sulfur-based fungicide.",
-      "Use a potassium bicarbonate spray to reduce fungal growth.",
-      "Mulch around the plant base to prevent soil splash onto leaves.",
-    ],
-    accuracy: 70,
-  },
-  "White Spot": {
-    severity: "Mild",
-    treatments: [
-      "Increase sunlight exposure and apply a foliar fungicide like chlorothalonil.",
-      "Spray with diluted milk (1:9 milk-to-water ratio) as an organic treatment.",
-      "Remove infected leaves and avoid wetting foliage during watering.",
-    ],
-    accuracy: 85,
-  },
-};
-
 export const analyzeAiPipeline = async (req, res) => {
   let imagePath;
 
@@ -97,7 +48,7 @@ export const analyzeAiPipeline = async (req, res) => {
           content: [
             {
               type: "text",
-              text: "Identify if this leaf is a tea leaf, coconut leaf, or mango leaf. Return only the leaf type as plain text (e.g., 'tea leaf').",
+              text: "Identify if this leaf is a tea leaf, coconut leaf, or mango leaf. Return only the leaf type as plain text.if image not leaf return not a leaf",
             },
             {
               type: "image_url",
@@ -115,7 +66,7 @@ export const analyzeAiPipeline = async (req, res) => {
     // Step 2: Check Tea Leaf Health (if tea leaf)
     if (leafType.includes("tea")) {
       const healthResponse = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "user",
@@ -137,19 +88,18 @@ export const analyzeAiPipeline = async (req, res) => {
       result.isHealthy = isHealthy;
       console.log("Step 2 - Health status:", isHealthy ? "healthy" : "unhealthy");
 
-      // Step 3 & 4: Disease Detection and Treatment (if unhealthy tea leaf)
+      // Step 3: Disease Detection (if unhealthy tea leaf)
       if (!isHealthy) {
-        // Simulate disease detection (replace this with a real ML model later)
-        const diseaseOptions = Object.keys(diseaseDatabase);
-        const simulatedDiseaseResponse = await openai.chat.completions.create({
-          model: "gpt-4o",
+        // CNN Path
+        const cnnResponse = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
           messages: [
             {
               role: "user",
               content: [
                 {
                   type: "text",
-                  text: `Based on the image, suggest a likely tea leaf disease from these options: ${diseaseOptions.join(", ")}. Return only the disease name as plain text (e.g., 'Algal Leaf Spot'). If uncertain, return 'Unknown'.`,
+                  text: "Identify the tea leaf disease using CNN. Options: Algal Leaf Spot, Grey Blight Disease, Brown Blight, Red Leaf Spot, White Spot. Return as JSON in this format: {\"disease\": \"disease_name\", \"accuracy\": number}. If unable to identify, return {\"disease\": \"Unknown\", \"accuracy\": 0}.",
                 },
                 {
                   type: "image_url",
@@ -158,35 +108,94 @@ export const analyzeAiPipeline = async (req, res) => {
               ],
             },
           ],
-          max_tokens: 50,
+          max_tokens: 100,
         });
-        const detectedDisease = simulatedDiseaseResponse.choices[0].message.content.trim();
-        console.log("Step 3 - Simulated disease detection:", detectedDisease);
-
-        if (detectedDisease !== "Unknown" && diseaseDatabase[detectedDisease]) {
-          const { severity, treatments, accuracy } = diseaseDatabase[detectedDisease];
-          result.disease = detectedDisease;
-          result.method = "Simulated Detection"; // Placeholder until ML model is integrated
-          result.accuracy = accuracy;
-          result.severity = severity;
-          result.treatments = treatments; // Return array of treatments
-          console.log("Step 3 & 4 - Disease result:", { disease: detectedDisease, accuracy, severity, treatments });
-        } else {
-          result.disease = "Unknown";
-          result.method = "Simulated Detection";
-          result.accuracy = 10;
-          result.severity = "Unknown";
-          result.treatments = ["Unable to identify disease with confidence. Consult a plant pathology expert."];
-          console.log("Step 3 & 4 - Unknown disease detected");
+        let cnnResult;
+        try {
+          cnnResult = JSON.parse(cnnResponse.choices[0].message.content);
+          console.log("Step 3 - CNN Raw Response:", cnnResponse.choices[0].message.content);
+        } catch (parseError) {
+          console.error("CNN JSON Parse Error:", parseError.message);
+          console.log("CNN Raw Response:", cnnResponse.choices[0].message.content);
+          cnnResult = { disease: "Unknown", accuracy: 0 }; // Fallback
         }
-      } else {
-        result.severity = "N/A";
-        result.treatments = ["Leaf is healthy, no treatment required"];
-        console.log("Step 3 & 4 - Skipped: Leaf is healthy");
+
+        // Semantic Segmentation Path
+        const segResponse = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: "Identify the tea leaf disease using semantic segmentation. Options: Algal Leaf Spot, Grey Blight Disease, Brown Blight, Red Leaf Spot, White Spot. Return as JSON in this format: {\"disease\": \"disease_name\", \"accuracy\": number}. If unable to identify, return {\"disease\": \"Unknown\", \"accuracy\": 0}.",
+                },
+                {
+                  type: "image_url",
+                  image_url: { url: `data:image/jpeg;base64,${base64Image}` },
+                },
+              ],
+            },
+          ],
+          max_tokens: 100,
+        });
+        let segResult;
+        try {
+          segResult = JSON.parse(segResponse.choices[0].message.content);
+          console.log("Step 3 - Segmentation Raw Response:", segResponse.choices[0].message.content);
+        } catch (parseError) {
+          console.error("Segmentation JSON Parse Error:", parseError.message);
+          console.log("Segmentation Raw Response:", segResponse.choices[0].message.content);
+          segResult = { disease: "Unknown", accuracy: 0 }; // Fallback
+        }
+
+        // Choose higher accuracy
+        const bestResult = cnnResult.accuracy > segResult.accuracy ? cnnResult : segResult;
+        result.disease = bestResult.disease;
+        result.method = cnnResult.accuracy > segResult.accuracy ? "CNN" : "Semantic Segmentation";
+        result.accuracy = bestResult.accuracy;
+        console.log("Step 3 - Best result:", bestResult);
+
+        // Step 4: Severity and Treatment (only if disease identified)
+        if (bestResult.disease !== "Unknown") {
+          const severityResponse = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: `For a tea leaf with ${bestResult.disease}, determine severity (Mild, Moderate, Severe) and recommend treatment. Return as JSON in this format: {"severity": "value", "treatment": "value"}. If unable to determine, return {"severity": "Unknown", "treatment": "Contact a specialist"}.`,
+                  },
+                  {
+                    type: "image_url",
+                    image_url: { url: `data:image/jpeg;base64,${base64Image}` },
+                  },
+                ],
+              },
+            ],
+            max_tokens: 200,
+          });
+          let severityResult;
+          try {
+            severityResult = JSON.parse(severityResponse.choices[0].message.content);
+            console.log("Step 4 - Severity Raw Response:", severityResponse.choices[0].message.content);
+          } catch (parseError) {
+            console.error("Severity JSON Parse Error:", parseError.message);
+            console.log("Severity Raw Response:", severityResponse.choices[0].message.content);
+            severityResult = { severity: "Unknown", treatment: "Contact a specialist" }; // Fallback
+          }
+          result.severity = severityResult.severity;
+          result.treatment = severityResult.treatment;
+          console.log("Step 4 - Severity and Treatment:", severityResult);
+        } else {
+          result.severity = "Unknown";
+          result.treatment = "Unable to identify disease";
+          console.log("Step 4 - Skipped: No valid disease identified");
+        }
       }
-    } else {
-      result.message = "This pipeline only processes tea leaves. Detected leaf type: " + leafType;
-      console.log("Step 2 - Skipped: Not a tea leaf");
     }
 
     await fs.unlink(imagePath);

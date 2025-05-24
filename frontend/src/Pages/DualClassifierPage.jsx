@@ -50,10 +50,8 @@ const DualClassifierPage = () => {
               title: "CNN",
               text: "Learns hierarchical features from raw image data, excelling at capturing complex patterns and spatial relationships.",
             },
-            {
-              title: "SVM",
-              text: "Finds optimal decision boundaries in high-dimensional spaces, ideal for well-defined feature classification.",
-            },
+            
+
           ]}
         />
 

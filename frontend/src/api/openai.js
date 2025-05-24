@@ -42,3 +42,4 @@ export const getTreatment = async (disease, severity, percentage) => {
     return "Failed to get treatment. Please try again.";
   }
 };
+

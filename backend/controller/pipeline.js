@@ -48,7 +48,7 @@ export const analyzeAiPipeline = async (req, res) => {
           content: [
             {
               type: "text",
-              text: "Identify if this leaf is a tea leaf, coconut leaf, or mango leaf. Return only the leaf type as plain text.if image not leaf return not a leaf",
+              text: "Identify if this leaf is a tea leaf, coconut leaf, or mango leaf. Return only the leaf type as plain text.if image not leaf return not a Tea leaf",
             },
             {
               type: "image_url",

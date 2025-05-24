@@ -9,9 +9,7 @@ const __dirname = path.dirname(__filename);
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-8o=[
-    
-]
+
 export const analyzeAiPipeline = async (req, res) => {
   let imagePath;
 

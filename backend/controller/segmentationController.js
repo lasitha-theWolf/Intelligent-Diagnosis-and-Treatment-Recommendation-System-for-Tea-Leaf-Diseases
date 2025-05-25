@@ -50,7 +50,7 @@ export const analyzeLeafImage = async (req, res, next) => {
           content: [
             {
               type: "text",
-              text: "Identify the tea leaf disease from this image. Consider only these options: Algal Leaf Spot, Grey Blight Disease, Brown Blight, Red Leaf Spot, White Spot. Return only the disease name.if image not leaf return not a leaf.",
+              text: "Identify the tea leaf disease from this image. Consider only these options: Algal Leaf Spot, Grey Blight Disease, Brown Blight, Red Leaf Spot, White Spot. Return only the disease name.if image not leaf return not a tea leaf.",
             },
             {
               type: "image_url",

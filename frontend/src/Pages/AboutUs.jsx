@@ -1,13 +1,14 @@
 import React from "react";
 import Hero from "../components/Hero";
 import Biography from "../components/Biography";
+import Team from "../components/Team";
+
 const AboutUs = () => {
   return (
     <>
-      <Hero
-        title={"Learn More About Us | TeaGuard Solutions"}
-        imageUrl={"/about.png"}
-      />
+
+     
+      <Team />
       <Biography imageUrl={"/whoweare.png"} />
     </>
   );

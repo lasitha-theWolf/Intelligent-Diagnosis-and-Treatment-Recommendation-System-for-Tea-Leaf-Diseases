@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom"; // Add this import
 import Hero from "../components/Hero";
 import Biography from "../components/Biography";
+import Team from "../components/Team";
 import MessageForm from "../components/MessageForm";
 import Departments from "../components/Departments";
 import { FaLeaf, FaSearch, FaBrain, FaSyringe, FaRobot, FaChartLine, FaNetworkWired } from "react-icons/fa";
@@ -190,6 +191,7 @@ const Home = () => {
         </div>
       </div>
 
+      <Team />
       <Biography imageUrl={"/about.png"} />
       <Departments />
       <MessageForm />

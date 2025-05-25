@@ -29,8 +29,7 @@ const MessageForm = () => {
       setMessage("");
     } catch (error) {
       // Improved error handling
-      const errorMessage = error.response?.data?.message || "An unexpected error occurred.";
-      toast.error(errorMessage);
+
     }
   };
   

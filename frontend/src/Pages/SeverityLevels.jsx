@@ -156,7 +156,7 @@ const SeverityLevels = () => {
                 {predicted_class}
               </p>
 
-              <ul className="mt-6 space-y-2">
+              {/* <ul className="mt-6 space-y-2">
                 <li className="flex items-center text-black">
                   <div
                     className="w-3 h-3 rounded-full mr-2"
@@ -196,7 +196,7 @@ const SeverityLevels = () => {
                     {percentages.Severe.toFixed(1)}%
                   </span>
                 </li>
-              </ul>
+              </ul> */}
             </div>
           </div>
 

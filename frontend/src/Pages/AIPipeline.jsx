@@ -186,42 +186,57 @@ const AIPipeline = () => {
         {/* Pipeline Flowchart */}
         {pipelineResult && (
           <div className="flex flex-col items-center gap-10">
-            {/* Step 1: Leaf Identification */}
-            {renderPipelineCard(
-              "Step 1: Leaf Identification",
-              pipelineResult.leafType
-                ? `Identified as: ${pipelineResult.leafType}`
-                : "Unable to identify leaf type",
-              0,
-              pipelineResult.error
-            )}
-
-            {pipelineResult.leafType && (
+            {/* Check if it's not a tea leaf - show special message */}
+            {(() => {
+              // Debug logging
+              console.log("Pipeline Result:", pipelineResult);
+              console.log("Leaf Type:", pipelineResult.leafType);
+              console.log("Message:", pipelineResult.message);
+              console.log("Includes tea:", pipelineResult.leafType?.toLowerCase().includes("tea"));
+              
+              // Check if it's not a tea leaf
+              const isNotTeaLeaf = pipelineResult.leafType && 
+                (pipelineResult.leafType.toLowerCase().includes("not") || 
+                 pipelineResult.leafType.toLowerCase().includes("not_tea_leaf") ||
+                 !pipelineResult.leafType.toLowerCase().includes("tea"));
+              
+              console.log("Is Not Tea Leaf:", isNotTeaLeaf);
+              
+              return isNotTeaLeaf;
+            })() ? (
               <motion.div
-                className="text-teal-300"
+                className="w-full max-w-lg"
                 initial="hidden"
                 animate="visible"
-                variants={arrowVariants}
+                variants={cardVariants}
+                whileHover="hover"
               >
-                <FaArrowDown size={28} />
+                <div className="p-6 rounded-2xl shadow-lg transform transition-all duration-300 bg-orange-900/80 backdrop-blur-md border border-orange-500/50">
+                  <h3 className="text-xl font-semibold text-orange-100 mb-3">Analysis Result</h3>
+                  <div className="bg-gray-900/40 p-4 rounded-lg">
+                    <p className="text-orange-200 text-base leading-relaxed mb-3">
+                      <strong>Identified as:</strong> {pipelineResult.leafType}
+                    </p>
+                    <p className="text-orange-100 text-base leading-relaxed">
+                      {"This is not a tea leaf. Please upload an image of a tea leaf for disease analysis."}
+                    </p>
+                  </div>
+                </div>
               </motion.div>
-            )}
-
-            {/* Step 2: Tea Leaf Health */}
-            {pipelineResult.leafType?.toLowerCase().includes("tea") && (
+            ) : (
+              /* Show normal pipeline steps only for tea leaves */
               <>
+                {/* Step 1: Leaf Identification */}
                 {renderPipelineCard(
-                  "Step 2: Health Check",
-                  pipelineResult.isHealthy !== undefined
-                    ? pipelineResult.isHealthy
-                      ? "Leaf is Healthy"
-                      : "Leaf is Unhealthy"
-                    : "Health check failed",
-                  0.2,
+                  "Step 1: Leaf Identification",
+                  pipelineResult.leafType
+                    ? `Identified as: ${pipelineResult.leafType}`
+                    : "Unable to identify leaf type",
+                  0,
                   pipelineResult.error
                 )}
 
-                {pipelineResult.isHealthy === false && (
+                {pipelineResult.leafType && (
                   <motion.div
                     className="text-teal-300"
                     initial="hidden"
@@ -231,64 +246,91 @@ const AIPipeline = () => {
                     <FaArrowDown size={28} />
                   </motion.div>
                 )}
+
+                {/* Step 2: Tea Leaf Health */}
+                {pipelineResult.leafType?.toLowerCase().includes("tea") && (
+                  <>
+                    {renderPipelineCard(
+                      "Step 2: Health Check",
+                      pipelineResult.isHealthy !== undefined
+                        ? pipelineResult.isHealthy
+                          ? "Leaf is Healthy"
+                          : "Leaf is Unhealthy"
+                        : "Health check failed",
+                      0.2,
+                      pipelineResult.error
+                    )}
+
+                    {pipelineResult.isHealthy === false && (
+                      <motion.div
+                        className="text-teal-300"
+                        initial="hidden"
+                        animate="visible"
+                        variants={arrowVariants}
+                      >
+                        <FaArrowDown size={28} />
+                      </motion.div>
+                    )}
+                  </>
+                )}
+
+                {/* Step 3: Disease Detection */}
+                {pipelineResult.leafType?.toLowerCase().includes("tea") &&
+                  pipelineResult.isHealthy === false && (
+                    <>
+                      {renderPipelineCard(
+                        "Step 3: Disease Detection",
+                        pipelineResult.disease
+                          ? `Detected: ${pipelineResult.disease} (Method: ${pipelineResult.method}, Accuracy: ${pipelineResult.accuracy}%)`
+                          : "Disease detection failed",
+                        0.4,
+                        pipelineResult.error
+                      )}
+
+                      {pipelineResult.disease && pipelineResult.disease !== "Unknown" && (
+                        <motion.div
+                          className="text-teal-300"
+                          initial="hidden"
+                          animate="visible"
+                          variants={arrowVariants}
+                        >
+                          <FaArrowDown size={28} />
+                        </motion.div>
+                      )}
+                    </>
+                  )}
+
+                {/* Step 4: Severity & Treatment */}
+                {pipelineResult.leafType?.toLowerCase().includes('tea') &&
+                  pipelineResult.isHealthy === false &&
+                  pipelineResult.disease &&
+                  pipelineResult.disease !== "Unknown" && (
+                    renderPipelineCard(
+                      "Step 4: Severity & Treatment",
+                      (() => {
+                        const severity = pipelineResult.severity || "Moderate";
+                        let treatment = pipelineResult.treatment;
+                        
+                        // Fallback treatments based on disease type if no treatment is provided
+                        if (!treatment) {
+                          const fallbackTreatments = {
+                            "Algal Leaf Spot": "Apply copper-based fungicide and ensure proper air circulation between plants. Prune affected leaves.",
+                            "Grey Blight Disease": "Remove infected leaves and apply systemic fungicide. Maintain proper spacing between plants.",
+                            "Brown Blight": "Apply appropriate fungicides and improve drainage. Remove severely infected leaves.",
+                            "Red Leaf Spot": "Use copper oxychloride spray and maintain field sanitation. Avoid overhead irrigation.",
+                            "White Spot": "Apply suitable fungicide and maintain proper plant spacing. Remove infected plant debris."
+                          };
+                          treatment = fallbackTreatments[pipelineResult.disease] || "Apply appropriate fungicide and consult a tea cultivation expert for specific treatment recommendations.";
+                        }
+                        
+                        return `Severity: ${severity}\nTreatment: ${treatment}`;
+                      })(),
+                      0.6,
+                      pipelineResult.error
+                    )
+                  )}
               </>
             )}
-
-            {/* Step 3: Disease Detection */}
-            {pipelineResult.leafType?.toLowerCase().includes("tea") &&
-              pipelineResult.isHealthy === false && (
-                <>
-                  {renderPipelineCard(
-                    "Step 3: Disease Detection",
-                    pipelineResult.disease
-                      ? `Detected: ${pipelineResult.disease} (Method: ${pipelineResult.method}, Accuracy: ${pipelineResult.accuracy}%)`
-                      : "Disease detection failed",
-                    0.4,
-                    pipelineResult.error
-                  )}
-
-                  {pipelineResult.disease && pipelineResult.disease !== "Unknown" && (
-                    <motion.div
-                      className="text-teal-300"
-                      initial="hidden"
-                      animate="visible"
-                      variants={arrowVariants}
-                    >
-                      <FaArrowDown size={28} />
-                    </motion.div>
-                  )}
-                </>
-              )}
-
-            {/* Step 4: Severity & Treatment */}
-            {pipelineResult.leafType?.toLowerCase().includes('tea') &&
-              pipelineResult.isHealthy === false &&
-              pipelineResult.disease &&
-              pipelineResult.disease !== "Unknown" && (
-                renderPipelineCard(
-                  "Step 4: Severity & Treatment",
-                  (() => {
-                    const severity = pipelineResult.severity || "Moderate";
-                    let treatment = pipelineResult.treatment;
-                    
-                    // Fallback treatments based on disease type if no treatment is provided
-                    if (!treatment) {
-                      const fallbackTreatments = {
-                        "Algal Leaf Spot": "Apply copper-based fungicide and ensure proper air circulation between plants. Prune affected leaves.",
-                        "Grey Blight Disease": "Remove infected leaves and apply systemic fungicide. Maintain proper spacing between plants.",
-                        "Brown Blight": "Apply appropriate fungicides and improve drainage. Remove severely infected leaves.",
-                        "Red Leaf Spot": "Use copper oxychloride spray and maintain field sanitation. Avoid overhead irrigation.",
-                        "White Spot": "Apply suitable fungicide and maintain proper plant spacing. Remove infected plant debris."
-                      };
-                      treatment = fallbackTreatments[pipelineResult.disease] || "Apply appropriate fungicide and consult a tea cultivation expert for specific treatment recommendations.";
-                    }
-                    
-                    return `Severity: ${severity}\nTreatment: ${treatment}`;
-                  })(),
-                  0.6,
-                  pipelineResult.error
-                )
-              )}
           </div>
         )}
       </div>

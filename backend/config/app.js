@@ -9,13 +9,24 @@ import segmentationRouter from "./router/segmentationRouter.js";
 import userRouter from "./router/userRouter.js";
 import appointmentRouter from "./router/appointmentRouter.js";
 import staffRouter from "./router/staffRouter.js"; 
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-config({ path: "./config.env" });
+config({ path: path.join(__dirname, "config.env") });
+
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:3000", 
+      "https://intelligent-diagnosis-and-treatment-recommendation-system-for-tea-leaf-diseases.vercel.app", // Replace with your actual Vercel URL
+      process.env.FRONTEND_URL
+    ],
     methods: ["GET", "POST", "DELETE", "PUT"],
     credentials: true,
   })

@@ -14,6 +14,7 @@ const LeafRecognition = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [accuracy, setAccuracy] = useState(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -24,6 +25,7 @@ const LeafRecognition = () => {
     if (file) {
       setSelectedImage(file);
       setResult(null);
+      setAccuracy(null);
     }
   };
 
@@ -43,6 +45,7 @@ const LeafRecognition = () => {
         );
 
         setResult({ type: "success", leafType: response.data.leafType });
+        setAccuracy(response.data.accuracy);
       } catch (error) {
         console.error("Error analyzing image:", error);
         setResult({
@@ -51,6 +54,7 @@ const LeafRecognition = () => {
             ? error.response.data.details
             : error.response?.data?.error || "Could not analyze the image"
         });
+        setAccuracy(null);
       } finally {
         setIsLoading(false);
       }
@@ -83,7 +87,7 @@ const LeafRecognition = () => {
           </p>
         )}
         <p className="text-sm text-gray-600 mt-1">
-          Accuracy: ≥90%
+          Accuracy level: {accuracy ? `${accuracy}%` : "≥90%"}
         </p>
       </div>
     );

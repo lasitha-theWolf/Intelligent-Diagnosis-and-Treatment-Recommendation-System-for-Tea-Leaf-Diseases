@@ -48,7 +48,7 @@ export const analyzeAiPipeline = async (req, res) => {
           content: [
             {
               type: "text",
-              text: "Identify if this leaf is a tea leaf, coconut leaf, or mango leaf. Return only the leaf type as plain text.if image not leaf return not a Tea leaf",
+              text: "Analyze this image and determine if it shows a tea leaf (Camellia sinensis). Tea leaves can be healthy or diseased, young or mature. Look for characteristic features: serrated/toothed edges, elliptical/oval shape, pointed tip, and typical tea plant leaf structure. Respond with EXACTLY one of these two options: 'TEA LEAF' if it is a tea leaf (healthy or diseased), or 'NOT_TEA_LEAF' if it is not a tea leaf.",
             },
             {
               type: "image_url",
@@ -62,9 +62,21 @@ export const analyzeAiPipeline = async (req, res) => {
     const leafType = leafTypeResponse.choices[0].message.content.trim().toLowerCase();
     const result = { leafType };
     console.log("Step 1 - Leaf type identified:", leafType);
+    console.log("Step 1 - Checking if leafType includes 'tea':", leafType.includes("tea"));
+
+    // Early return if not a tea leaf - stop all other functions
+    if (!leafType.includes("tea_leaf") && !leafType.includes("tea leaf")) {
+      console.log("Step 1 - Not a tea leaf detected. Stopping pipeline.");
+      await fs.unlink(imagePath);
+      console.log("Image file cleaned up");
+      return res.status(200).json({ 
+        leafType: leafType,
+        message: "This is not a tea leaf. Please upload an image of a tea leaf for disease analysis."
+      });
+    }
 
     // Step 2: Check Tea Leaf Health (if tea leaf)
-    if (leafType.includes("tea")) {
+    if (leafType.includes("tea_leaf") || leafType.includes("tea leaf")) {
       const healthResponse = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [

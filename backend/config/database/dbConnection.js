@@ -1,10 +1,13 @@
 import mongoose from "mongoose";
 import { config } from "dotenv"; // Import dotenv
+import { fileURLToPath } from "url";
+import path from "path";
 
-// Load environment variables from the .env file
-config({ path: "./config/.env" }); // Adjust the path if necessary
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-
+// Load environment variables from the config.env file
+config({ path: path.join(__dirname, "../config.env") });
 
 export const dbConnection = () => {
   mongoose

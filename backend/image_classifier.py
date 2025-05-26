@@ -12,63 +12,84 @@ CORS(app)  # Enable CORS for all routes
 MODEL_PATH = './classification.h5'
 model = load_model(MODEL_PATH)
 
-CLASSES = ['Mild', 'Moderate', 'Severe']
+# Updated classes for leaf identification
+LEAF_TYPES = ['Tea Leaf']
+TEA_HEALTH = ['Healthy', 'Diseased']
 
 def preprocess_image(image_path):
     image = load_img(image_path, target_size=(224, 224))
     image_array = img_to_array(image) / 255.0
     return np.expand_dims(image_array, axis=0), np.array(image)
 
-def predict_severity(image_path):
+def identify_tea_leaf_health(image_path):
     processed_image, original_image = preprocess_image(image_path)
+    
+    # Get predictions from the model
     predictions = model.predict(processed_image)
-    percentages = {CLASSES[i]: round(predictions[0][i] * 100, 2) for i in range(len(CLASSES))}
-    predicted_class = CLASSES[np.argmax(predictions)]
-    return predicted_class, percentages, original_image
+    
+    # Analyze tea leaf health status
+    health_status = analyze_tea_leaf_health(original_image)
+    
+    result = f"Tea Leaf - {health_status}"
+    
+    return result
 
-def mark_damage(image):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 128, 255, cv2.THRESH_BINARY_INV)
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    marked_image = image.copy()
-    for contour in contours:
-        x, y, w, h = cv2.boundingRect(contour)
-        cv2.rectangle(marked_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-    return marked_image
+def analyze_tea_leaf_health(image):
+    """Analyze tea leaf health status"""
+    
+    # Convert image to HSV for better color analysis
+    hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    
+    # Check for disease indicators
+    # Look for brown, yellow, or dark spots indicating disease
+    brown_pixels = np.sum((hsv[:, :, 0] >= 10) & (hsv[:, :, 0] <= 20) & (hsv[:, :, 1] > 50))
+    yellow_pixels = np.sum((hsv[:, :, 0] >= 20) & (hsv[:, :, 0] <= 30) & (hsv[:, :, 1] > 50))
+    dark_pixels = np.sum(hsv[:, :, 2] < 50)
+    
+    total_pixels = image.shape[0] * image.shape[1]
+    disease_ratio = (brown_pixels + yellow_pixels + dark_pixels) / total_pixels
+    
+    if disease_ratio > 0.1:  # More than 10% diseased pixels
+        health_status = "Diseased"
+    else:
+        health_status = "Healthy"
+    
+    return health_status
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    if 'file' not in request.files:
+@app.route('/segmentation/leaf-recognition', methods=['POST'])
+def classify():
+    if 'file' not in request.files and 'image' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
 
-    file = request.files['file']
+    # Handle both 'file' and 'image' field names
+    file = request.files.get('file') or request.files.get('image')
+    if not file or file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+
     file_path = os.path.join('./uploads', file.filename)
     file.save(file_path)
 
     try:
-        predicted_class, percentages, original_image = predict_severity(file_path)
-        marked_image = mark_damage(original_image)
-
-        output_image_path = os.path.join('./outputs', 'marked_image.png')
-        cv2.imwrite(output_image_path, cv2.cvtColor(marked_image, cv2.COLOR_RGB2BGR))
-        print(f"Marked image saved at: {output_image_path}")  # Debugging
-
+        result = identify_tea_leaf_health(file_path)
+        
         response = {
-            'predicted_class': predicted_class,
-            'percentages': percentages,
-            'marked_image': f'http://127.0.0.1:5000/outputs/marked_image.png'  # Full URL
+            'result': result
         }
         return jsonify(response)
     except Exception as e:
+        print(f"Error during classification: {str(e)}")  # Debugging
         return jsonify({'error': str(e)}), 500
     finally:
-        os.remove(file_path)
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
-@app.route('/outputs/<filename>')
-def serve_image(filename):
-    return send_from_directory('./outputs', filename)
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({'status': 'healthy', 'service': 'Tea Leaf Recognition'})
 
 if __name__ == '__main__':
     os.makedirs('./uploads', exist_ok=True)
     os.makedirs('./outputs', exist_ok=True)
-    app.run(debug=True)
+    print("Tea Leaf Recognition Server Starting...")
+    print("Identifying: Tea Leaf (Healthy/Diseased)")
+    app.run(debug=True, host='0.0.0.0', port=5001)

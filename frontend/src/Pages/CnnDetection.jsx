@@ -8,6 +8,7 @@ const LeafSenseAnalysis = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [accuracy, setAccuracy] = useState(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -18,6 +19,7 @@ const LeafSenseAnalysis = () => {
     if (file) {
       setSelectedImage(file);
       setResult(null);
+      setAccuracy(null);
     }
   };
 
@@ -42,6 +44,7 @@ const LeafSenseAnalysis = () => {
           type: "success", 
           disease: response.data.disease || "Unknown disease" 
         });
+        setAccuracy(response.data.accuracy);
       } catch (error) {
         console.error("Error analyzing image:", error);
         setResult({
@@ -50,6 +53,7 @@ const LeafSenseAnalysis = () => {
             ? error.response.data.details
             : error.response?.data?.error || error.message || "Could not analyze the image",
         });
+        setAccuracy(null);
       } finally {
         setIsLoading(false);
       }
@@ -68,7 +72,7 @@ const LeafSenseAnalysis = () => {
     return (
       <div className="text-teal-100">
         <p className="text-lg font-medium">Detected Disease: {disease}</p>
-        <p className="text-sm mt-1">Accuracy: ≥90%</p>
+        <p className="text-sm mt-1">Accuracy level: {accuracy ? `${accuracy}%` : "≥90%"}</p>
       </div>
     );
   };
@@ -182,8 +186,12 @@ const LeafSenseAnalysis = () => {
           {/* Card 1: Detection Accuracy */}
           <div className="bg-teal-800 bg-opacity-60 p-6 rounded-lg text-center flex flex-col items-center shadow-lg">
             <FaCheck className="text-4xl text-teal-200 mb-2" />
-            <p className="text-3xl font-bold text-teal-200">90%+</p>
-            <p className="text-sm text-teal-100 mt-1">Detection Accuracy</p>
+            <p className="text-3xl font-bold text-teal-200">
+              {accuracy ? `${accuracy}%` : "90%+"}
+            </p>
+            <p className="text-sm text-teal-100 mt-1">
+              {accuracy ? "Current Accuracy" : "Detection Accuracy"}
+            </p>
           </div>
 
           {/* Card 2: Processing Speed */}

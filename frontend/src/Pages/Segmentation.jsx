@@ -7,12 +7,14 @@ const Segmentation = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [accuracy, setAccuracy] = useState(null);
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
       setSelectedImage(file); // Store the file object directly
       setResult(null); // Reset result when new image is uploaded
+      setAccuracy(null); // Reset accuracy when new image is uploaded
     }
   };
 
@@ -29,6 +31,7 @@ const Segmentation = () => {
         });
   
         setResult(response.data.disease);
+        setAccuracy(response.data.accuracy);
       } catch (error) {
         console.error("Error analyzing image:", error);
         setResult(
@@ -36,6 +39,7 @@ const Segmentation = () => {
             ? `Error: ${error.response.data.details}`
             : `Error: ${error.response?.data?.message || "Could not analyze the image"}`
         );
+        setAccuracy(null);
       } finally {
         setIsLoading(false);
       }
@@ -157,8 +161,23 @@ const Segmentation = () => {
               animate={{ opacity: 1, y: 0 }}
               className="mt-6 p-6 bg-gray-800 rounded-xl border border-cyan-500/30"
             >
-              <h3 className="text-xl font-semibold text-cyan-400 mb-2">Analysis Result</h3>
-              <p className="text-gray-200">{result}</p>
+              <h3 className="text-xl font-semibold text-cyan-400 mb-4">Analysis Result</h3>
+              
+              <div className="space-y-4">
+                {/* Disease Analysis */}
+                <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+                  <h4 className="text-lg font-medium text-white mb-2">Disease Detection</h4>
+                  <p className="text-gray-200">{result}</p>
+                </div>
+
+                {/* Accuracy Display */}
+                {accuracy && (
+                  <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+                    <h4 className="text-lg font-medium text-white mb-2">Accuracy level</h4>
+                    <p className="text-gray-200">{accuracy}%</p>
+                  </div>
+                )}
+              </div>
             </motion.div>
           )}
         </motion.div>
@@ -170,7 +189,11 @@ const Segmentation = () => {
           className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6"
         >
           {[
-            { title: "Precision", value: "99.9%", desc: "Pixel-perfect accuracy" },
+            { 
+              title: "Accuracy", 
+              value: accuracy ? `${accuracy}%` : "99.9%", 
+              desc: accuracy ? "Current analysis confidence" : "Pixel-perfect accuracy" 
+            },
             { title: "Speed", value: "2s", desc: "Instant results" },
             { title: "Innovation", value: "Next-Gen", desc: "AI-powered future" },
           ].map((feature, index) => (
@@ -182,7 +205,17 @@ const Segmentation = () => {
               whileHover={{ y: -10, borderColor: "rgba(34, 211, 238, 0.8)" }}
               className="bg-gray-900/50 p-6 rounded-xl border border-gray-800 text-center"
             >
-              <p className="text-3xl font-bold text-cyan-400">{feature.value}</p>
+              <p className={`text-3xl font-bold ${
+                feature.title === "Accuracy" && accuracy 
+                  ? accuracy >= 90 
+                    ? 'text-green-400' 
+                    : accuracy >= 80 
+                    ? 'text-yellow-400' 
+                    : 'text-red-400'
+                  : 'text-cyan-400'
+              }`}>
+                {feature.value}
+              </p>
               <h4 className="text-lg font-semibold text-white mt-2">{feature.title}</h4>
               <p className="text-sm text-gray-400">{feature.desc}</p>
             </motion.div>

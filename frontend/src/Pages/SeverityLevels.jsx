@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getTreatment } from "../api/openai";
+import { getTreatment } from "../api/treamentRecommendtion";
 import { Link } from 'react-router-dom';
 import { CheckCircle } from "lucide-react";
 
